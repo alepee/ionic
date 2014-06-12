@@ -26,6 +26,7 @@ var jshint = require('gulp-jshint');
 var minifyCss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var sass = require('gulp-sass');
+var coffee = require('gulp-coffee');
 var stripDebug = require('gulp-strip-debug');
 var template = require('gulp-template');
 var uglify = require('gulp-uglify');
@@ -56,7 +57,7 @@ if (argv.dist) {
 }
 
 gulp.task('default', ['build']);
-gulp.task('build', ['bundle', 'sass']);
+gulp.task('build', ['bundle', 'sass', 'coffee']);
 gulp.task('validate', ['jshint', 'ddescribe-iit', 'karma']);
 
 
@@ -65,6 +66,7 @@ gulp.task('watch', ['build'], function() {
   IS_WATCH = true;
   gulp.watch('js/**/*.js', ['bundle']);
   gulp.watch('scss/**/*.scss', ['sass']);
+  gulp.watch('coffee/**/*.coffee', ['coffee']);
 });
 
 gulp.task('changelog', function(done) {
@@ -191,6 +193,21 @@ gulp.task('sass', function(done) {
     .pipe(gulpif(IS_RELEASE_BUILD, minifyCss()))
     .pipe(rename({ extname: '.min.css' }))
     .pipe(gulp.dest(buildConfig.dist + '/css'))
+    .on('end', done);
+});
+
+gulp.task('coffee', function(done) {
+  gulp.src('coffee/*.coffee')
+    .pipe(coffee({
+      onError: function(err) {
+        if (IS_WATCH) {
+          console.log(gutil.colors.red(err));
+        } else {
+          done(err);
+        }
+      }
+    }))
+    .pipe(gulp.dest(buildConfig.dist + '/js'))
     .on('end', done);
 });
 
